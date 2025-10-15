@@ -55,11 +55,15 @@ jobs:
           unzip cmdline-tools.zip
           rm cmdline-tools.zip
           mv cmdline-tools latest
-          echo "export ANDROID_HOME=$HOME/Android/Sdk" >> $GITHUB_ENV
-          echo "export PATH=$HOME/Android/Sdk/cmdline-tools/latest/bin:$HOME/Android/Sdk/platform-tools:$PATH" >> $GITHUB_ENV
-          sdkmanager --update
-          yes | sdkmanager --licenses
-          sdkmanager "platform-tools" "platforms;android-33" "build-tools;36.1.0"
+          echo "ANDROID_HOME=$HOME/Android/Sdk" >> $GITHUB_ENV
+          echo "PATH=$HOME/Android/Sdk/cmdline-tools/latest/bin:$HOME/Android/Sdk/platform-tools:$PATH" >> $GITHUB_ENV
+
+      # ------------------------------
+      - name: Accept licenses and install SDK packages
+        run: |
+          $HOME/Android/Sdk/cmdline-tools/latest/bin/sdkmanager --update
+          yes | $HOME/Android/Sdk/cmdline-tools/latest/bin/sdkmanager --licenses
+          $HOME/Android/Sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;36.1.0"
 
       # ------------------------------
       - name: Ensure buildozer.spec and bin folder exist
