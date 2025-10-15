@@ -1,0 +1,105 @@
+name: Build XT-ScalperPro APK
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ------------------------------
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      # ------------------------------
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            ccache \
+            git \
+            zip \
+            unzip \
+            openjdk-17-jdk \
+            python3-pip \
+            python3-setuptools \
+            zlib1g-dev \
+            libstdc++6 \
+            libffi-dev \
+            libssl-dev \
+            wget
+
+      # ------------------------------
+      - name: Upgrade pip and install Buildozer
+        run: |
+          pip install --upgrade pip wheel Cython virtualenv
+          pip install buildozer==1.5.0
+
+      # ------------------------------
+      - name: Setup Android SDK environment
+        run: |
+          mkdir -p $HOME/Android/Sdk/cmdline-tools
+          cd $HOME/Android/Sdk/cmdline-tools
+          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+          unzip cmdline-tools.zip
+          rm cmdline-tools.zip
+          mv cmdline-tools latest
+          echo "export ANDROID_HOME=$HOME/Android/Sdk" >> $GITHUB_ENV
+          echo "export PATH=$HOME/Android/Sdk/cmdline-tools/latest/bin:$HOME/Android/Sdk/platform-tools:$PATH" >> $GITHUB_ENV
+          sdkmanager --update
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-33" "build-tools;36.1.0"
+
+      # ------------------------------
+      - name: Ensure buildozer.spec and bin folder exist
+        run: |
+          if [ ! -f buildozer.spec ]; then
+            echo "⚙️ buildozer.spec не найден — создаю стандартный файл..."
+            buildozer init
+          fi
+          mkdir -p bin
+
+      # ------------------------------
+      - name: Build APK
+        run: |
+          echo "🚀 Начинаю сборку APK..."
+          buildozer android clean
+          buildozer android debug || exit 1
+
+      # ------------------------------
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: XT-ScalperPro-APK
+          path: bin/*.apk
+
+      # ------------------------------
+      - name: Create GitHub Release
+        id: create_release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: v1.0.${{ github.run_number }}
+          name: "XT-ScalperPro v1.0.${{ github.run_number }}"
+          body: "Автоматически собранный APK через GitHub Actions."
+          draft: false
+          prerelease: false
+
+      # ------------------------------
+      - name: Upload APK to Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: bin/*.apk
+          asset_name: XT-ScalperPro.apk
+          asset_content_type: application/vnd.android.package-archive
