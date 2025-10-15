@@ -1,0 +1,53 @@
+BoxLayout:
+    orientation: 'vertical'
+    padding: 10
+    spacing: 10
+
+    Label:
+        text: "XT-ScalperPro Android"
+        font_size: 24
+
+    ScrollView:
+        size_hint_y: 0.3
+        Label:
+            id: positions_output
+            text: "Немає позицій"
+            size_hint_y: None
+            height: self.texture_size[1]
+            text_size: self.width, None
+            valign: 'top'
+
+    ScrollView:
+        size_hint_y: 0.2
+        Label:
+            id: signals_output
+            text: "Немає сигналів"
+            size_hint_y: None
+            height: self.texture_size[1]
+            text_size: self.width, None
+            valign: 'top'
+
+    GridLayout:
+        cols: 2
+        size_hint_y: 0.3
+        spacing: 10
+
+        Button:
+            text: "🟢 START BOT"
+            on_press: app.start_bot()
+
+        Button:
+            text: "🔴 STOP BOT"
+            on_press: app.stop_bot()
+
+        Button:
+            text: "🎯 SIGNAL MODE"
+            on_press: app.change_signal_mode()
+
+        Button:
+            text: "🧠 SL METHOD"
+            on_press: app.change_sl_method()
+
+        Button:
+            text: "🛡️ GUARD MODE"
+            on_press: app.change_guard_mode()
